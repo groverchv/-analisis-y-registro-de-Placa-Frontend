@@ -3,6 +3,24 @@ import { useNavigate } from "react-router-dom";
 
 import { useAuth } from "../hooks/useAuth";
 
+const CAREER_OPTIONS = [
+  "Ingenieria en Redes",
+  "Ingenieria Informatica",
+  "Ingenieria en Sistemas",
+  "Ingenieria Robotica"
+];
+
+function mapRoleToFormValue(user) {
+  const rawRole = user?.catalog_role || user?.role || "ESTUDIANTE";
+  if (rawRole === "ADMINISTRATIVO" || rawRole === "ADMIN") {
+    return "ADMINISTRATIVE";
+  }
+  if (rawRole === "DOCENTE" || rawRole === "TEACHER") {
+    return "TEACHER";
+  }
+  return "STUDENT";
+}
+
 function Profile() {
   const navigate = useNavigate();
   const { user, refreshProfile, saveProfile, removeProfile, profileSaving } = useAuth();
@@ -10,12 +28,14 @@ function Profile() {
     full_name: "",
     email: "",
     code: "",
+    role: "STUDENT",
     faculty: "",
-    contact_info: "",
+    phone: "",
     password: ""
   });
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const requiresFaculty = formData.role === "STUDENT";
 
   useEffect(() => {
     if (user) {
@@ -23,8 +43,9 @@ function Profile() {
         full_name: user.full_name || user.name || "",
         email: user.email || "",
         code: user.code || "",
+        role: mapRoleToFormValue(user),
         faculty: user.faculty || "",
-        contact_info: user.contact_info || "",
+        phone: user.phone || user.contact_info || "",
         password: ""
       });
     }
@@ -51,8 +72,10 @@ function Profile() {
         full_name: formData.full_name,
         email: formData.email,
         code: formData.code,
-        faculty: formData.faculty,
-        contact_info: formData.contact_info,
+        role: formData.role,
+        faculty: requiresFaculty ? formData.faculty : null,
+        phone: formData.phone,
+        contact_info: formData.phone,
         password: formData.password || undefined
       });
       setFormData((current) => ({ ...current, password: "" }));
@@ -113,13 +136,41 @@ function Profile() {
           </label>
 
           <label className="field-group">
-            <span>Carrera</span>
-            <input value={formData.faculty} onChange={handleChange("faculty")} />
+            <span>Rol</span>
+            <select
+              value={formData.role}
+              onChange={(event) =>
+                setFormData((current) => ({
+                  ...current,
+                  role: event.target.value,
+                  faculty: event.target.value === "STUDENT" ? current.faculty : ""
+                }))
+              }
+              required
+            >
+              <option value="ADMINISTRATIVE">Administrativo</option>
+              <option value="STUDENT">Estudiante</option>
+              <option value="TEACHER">Docente</option>
+            </select>
           </label>
+
+          {requiresFaculty && (
+            <label className="field-group">
+              <span>Carrera</span>
+              <select value={formData.faculty} onChange={handleChange("faculty")} required>
+                <option value="">Selecciona una carrera</option>
+                {CAREER_OPTIONS.map((career) => (
+                  <option key={career} value={career}>
+                    {career}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
 
           <label className="field-group">
             <span>Telefono</span>
-            <input value={formData.contact_info} onChange={handleChange("contact_info")} />
+            <input value={formData.phone} onChange={handleChange("phone")} required />
           </label>
 
           <label className="field-group">

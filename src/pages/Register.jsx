@@ -4,18 +4,27 @@ import { Link, Navigate } from "react-router-dom";
 import Loader from "../components/Loader";
 import { useAuth } from "../hooks/useAuth";
 
+const CAREER_OPTIONS = [
+  "Ingenieria en Redes",
+  "Ingenieria Informatica",
+  "Ingenieria en Sistemas",
+  "Ingenieria Robotica"
+];
+
 function Register() {
   const { user, authLoading, signUpLoading, signUp } = useAuth();
   const [formData, setFormData] = useState({
     full_name: "",
     email: "",
     code: "",
+    role: "STUDENT",
     faculty: "",
     contact_info: "",
     password: "",
     confirmPassword: ""
   });
   const [error, setError] = useState("");
+  const requiresFaculty = formData.role === "STUDENT";
 
   if (authLoading) {
     return (
@@ -43,8 +52,10 @@ function Register() {
         full_name: formData.full_name,
         email: formData.email,
         code: formData.code,
-        faculty: formData.faculty,
+        role: formData.role,
+        faculty: requiresFaculty ? formData.faculty : null,
         contact_info: formData.contact_info,
+        phone: formData.contact_info,
         password: formData.password
       });
     } catch (submitError) {
@@ -80,8 +91,7 @@ function Register() {
             <p className="eyebrow">Nuevo usuario</p>
             <h2>Crear cuenta</h2>
             <p className="muted-text">
-              Completa todos los datos. El registro debe existir previamente en el archivo
-              <strong> usuarios.json</strong> del backend.
+              Completa todos los datos para crear un acceso dentro de la plataforma.
             </p>
           </div>
 
@@ -134,20 +144,46 @@ function Register() {
           </label>
 
           <label className="field-group">
-            <span>Carrera</span>
-            <input
-              type="text"
-              placeholder="Ingenieria de Sistemas"
-              value={formData.faculty}
+            <span>Rol</span>
+            <select
+              value={formData.role}
               onChange={(event) =>
                 setFormData((current) => ({
                   ...current,
-                  faculty: event.target.value
+                  role: event.target.value,
+                  faculty: event.target.value === "STUDENT" ? current.faculty : ""
                 }))
               }
               required
-            />
+            >
+              <option value="ADMINISTRATIVE">Administrativo</option>
+              <option value="STUDENT">Estudiante</option>
+              <option value="TEACHER">Docente</option>
+            </select>
           </label>
+
+          {requiresFaculty && (
+            <label className="field-group">
+              <span>Carrera</span>
+              <select
+                value={formData.faculty}
+                onChange={(event) =>
+                  setFormData((current) => ({
+                    ...current,
+                    faculty: event.target.value
+                  }))
+                }
+                required
+              >
+                <option value="">Selecciona una carrera</option>
+                {CAREER_OPTIONS.map((career) => (
+                  <option key={career} value={career}>
+                    {career}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
 
           <label className="field-group">
             <span>Telefono</span>

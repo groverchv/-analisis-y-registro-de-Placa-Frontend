@@ -32,7 +32,7 @@ const vehicleInitialState = {
 
 function UploadPlate() {
   const { user } = useAuth();
-  const isAdmin = user?.role === "ADMIN";
+  const isAdmin = user?.role === "ADMINISTRATIVE" || user?.role === "ADMIN";
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const streamRef = useRef(null);
